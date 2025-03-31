@@ -1,20 +1,20 @@
 import React from 'react';
 import { Loader } from './Loader';
 import { NewCommentForm } from './NewCommentForm';
+import { Post } from '../types/Post';
 
-export const PostDetails: React.FC = () => {
+type Props = {
+  selectedPost: Post | null;
+};
+
+export const PostDetails: React.FC<Props> = ({ selectedPost }) => {
   return (
     <div className="content" data-cy="PostDetails">
       <div className="content" data-cy="PostDetails">
         <div className="block">
-          <h2 data-cy="PostTitle">
-            #18: voluptate et itaque vero tempora molestiae
-          </h2>
+          <h2 data-cy="PostTitle">{selectedPost?.title}</h2>
 
-          <p data-cy="PostBody">
-            eveniet quo quis laborum totam consequatur non dolor ut et est
-            repudiandae est voluptatem vel debitis et magnam
-          </p>
+          <p data-cy="PostBody">{selectedPost?.body}</p>
         </div>
 
         <div className="block">

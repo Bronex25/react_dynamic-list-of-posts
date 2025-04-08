@@ -18,38 +18,51 @@ export const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
 
-  const [errorMessage, setErrorMessage] = useState(false);
+  const [mainErrorMessage, setMainErrorMessage] = useState(false);
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-  const [loader, setLoader] = useState(false);
+  const [mainLoader, setMainLoader] = useState(false);
+  const [noPostsMess, setNoPostsMess] = useState(false);
 
-  const [openDropdown, setOpenDropdown] = useState(false);
-
-  const handleOpenDropdown = () => {
-    setOpenDropdown(prev => !prev);
+  const onClickPostButton = (post: Post) => {
+    if (post.id !== selectedPost?.id) {
+      setSelectedPost(post);
+    } else {
+      setSelectedPost(null);
+    }
   };
 
   const handelUserSelect = (user: User) => {
+    setPosts([]);
+    setSelectedPost(null);
     setSelectedUser(user);
-    handleOpenDropdown();
-    setLoader(true);
+    setMainLoader(true);
+    setNoPostsMess(false);
   };
-
-  useEffect(() => {
-    if (selectedUser) {
-      getPosts(selectedUser.id)
-        .then(setPosts)
-        .catch(() => setErrorMessage(true))
-        .finally(() => setLoader(false));
-    }
-  }, [selectedUser]);
 
   useEffect(() => {
     getUsers()
       .then(setUsers)
       .catch(e => console.log(e));
-  }, [users]);
+  }, []);
+
+  useEffect(() => {
+    if (selectedUser) {
+      getPosts(selectedUser.id)
+        .then(fetchedPosts => {
+          setPosts(fetchedPosts);
+          if (fetchedPosts.length === 0) {
+            setNoPostsMess(true);
+          }
+        })
+        .catch(() => setMainErrorMessage(true))
+        .finally(() => {
+          setMainLoader(false);
+        });
+    }
+  }, [selectedUser]);
 
   return (
     <main className="section">
@@ -60,21 +73,19 @@ export const App: React.FC = () => {
               <div className="block">
                 <UserSelector
                   users={users}
-                  openDropdown={openDropdown}
-                  handleOpenDropdown={handleOpenDropdown}
                   handleUserSelect={handelUserSelect}
                   selectedUser={selectedUser}
                 />
               </div>
 
               <div className="block" data-cy="MainContent">
-                <p data-cy="NoSelectedUser">
-                  {!selectedUser && ' No user selected'}
-                </p>
+                {!selectedUser && (
+                  <p data-cy="NoSelectedUser">No user selected</p>
+                )}
 
-                {loader && <Loader />}
+                {mainLoader && <Loader />}
 
-                {errorMessage && (
+                {mainErrorMessage && (
                   <div
                     className="notification is-danger"
                     data-cy="PostsLoadingError"
@@ -83,12 +94,18 @@ export const App: React.FC = () => {
                   </div>
                 )}
 
-                {posts.length !== 0 ? (
-                  <PostsList posts={posts} />
-                ) : (
+                {noPostsMess && (
                   <div className="notification is-warning" data-cy="NoPostsYet">
                     No posts yet
                   </div>
+                )}
+
+                {posts.length !== 0 && (
+                  <PostsList
+                    posts={posts}
+                    onClickPostButton={onClickPostButton}
+                    selectedPost={selectedPost}
+                  />
                 )}
               </div>
             </div>
@@ -96,17 +113,15 @@ export const App: React.FC = () => {
 
           <div
             data-cy="Sidebar"
-            className={cn(
-              'tile',
-              'is-parent',
-              'is-8-desktop',
-              'Sidebar',
-              'Sidebar--open',
-            )}
+            className={cn('tile', 'is-parent', 'is-8-desktop', 'Sidebar', {
+              'Sidebar--open': selectedPost,
+            })}
           >
-            <div className="tile is-child box is-success ">
-              <PostDetails selectedPost={selectedPost} />
-            </div>
+            {selectedPost && (
+              <div className="tile is-child box is-success ">
+                <PostDetails selectedPost={selectedPost} />
+              </div>
+            )}
           </div>
         </div>
       </div>

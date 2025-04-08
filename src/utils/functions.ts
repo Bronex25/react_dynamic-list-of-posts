@@ -1,13 +1,10 @@
+import { Comment } from '../types/Comment';
 import { Post } from '../types/Post';
 import { User } from '../types/User';
 import { client } from '../utils/fetchClient';
 
 export const getPosts = (userId: number) => {
   return client.get<Post[]>(`/posts?userId=${userId}`);
-};
-
-export const getUsers = () => {
-  return client.get<User[]>(`/users`);
 };
 
 export const addPost = ({ userId, title, body }: Omit<Post, 'id'>) => {
@@ -18,6 +15,27 @@ export const deletePost = (id: number) => {
   return client.delete(`/posts/${id}`);
 };
 
-export const updateTodo = ({ id, ...todoData }: Post) => {
-  return client.patch<Post>(`/posts/${id}`, todoData);
+export const updatePost = ({ id, ...postData }: Post) => {
+  return client.patch<Post>(`/posts/${id}`, postData);
+};
+
+export const getUsers = () => {
+  return client.get<User[]>(`/users`);
+};
+
+export const getComments = (id: number) => {
+  return client.get<Comment[]>(`/comments?postId=${id}`);
+};
+
+export const deleteComment = (id: number) => {
+  return client.delete(`/comments/${id}`);
+};
+
+export const addComment = ({
+  postId,
+  name,
+  email,
+  body,
+}: Omit<Comment, 'id'>) => {
+  return client.post<Post>('/comments', { postId, name, email, body });
 };
